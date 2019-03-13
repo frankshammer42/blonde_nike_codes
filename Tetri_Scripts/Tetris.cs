@@ -11,12 +11,16 @@ public class Tetris : MonoBehaviour {
     public float fall_speed; //Default fall speed
     public bool allowRotation = true;
     public bool limitRotation = false;
+    public bool flyup = false;
+    public float flyspeed = 1;
     private int wholeNumberCounter = 0; //I'm like goddannnnnng
     private int toDivide;
     private TetrisFace Face;  
     private int z_offset;
+    private int y_offset;
     private float y_rotation;
     private int gridHeightLimit;
+    
 
     public void SetFaceReference(TetrisFace FaceRef){
         Face = FaceRef;
@@ -30,6 +34,11 @@ public class Tetris : MonoBehaviour {
         y_rotation = y_rot;
     }
 
+    public void SetYoffset(int yoff){
+        y_offset = yoff;
+    }
+    
+
     public void SetGridHeightLimit(int gridHeight){
         gridHeightLimit = gridHeight;
     }
@@ -37,27 +46,31 @@ public class Tetris : MonoBehaviour {
     //TODO: Maybe need to use glow material in here
     private void Start (){
         toDivide = (int)(1 / fall_speed);
-        Debug.Log(toDivide);
     }
 	
 	// Update is called once per frame
     private void Update () {
-        CheckUserInput();
-        transform.position += new Vector3(0, -fall_speed, 0);
-        if (IsValidPosition()){
-            if (wholeNumberCounter % toDivide == 0){
-                if (wholeNumberCounter != 0){
-                    Face.UpdateGrid(this);
+        if (!flyup){
+            CheckUserInput();
+            transform.position += new Vector3(0, -fall_speed, 0);
+            if (IsValidPosition()){
+                if (wholeNumberCounter % toDivide == 0){
+                    if (wholeNumberCounter != 0){
+                        Face.UpdateGrid(this);
+                    }
                 }
+                wholeNumberCounter++;
             }
-            wholeNumberCounter++;
+            else{
+                transform.position += new Vector3(0, +fall_speed, 0);
+                transform.position = new Vector3(transform.position.x, (float)Math.Round(transform.position.y, 1), transform.position.z);
+                Face.DeleteRowsIfFull();
+                enabled = false;
+                Face.Generate_tetris();;
+            }
         }
         else{
-            transform.position += new Vector3(0, +fall_speed, 0);
-            transform.position = new Vector3(transform.position.x, (float)Math.Round(transform.position.y, 1), transform.position.z);
-            Face.DeleteRowsIfFull();
-            enabled = false;
-            Face.Generate_tetris();;
+            transform.position += new Vector3(0, flyspeed, 0);
         }
     } 
 

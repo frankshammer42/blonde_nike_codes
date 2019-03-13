@@ -10,11 +10,15 @@ public class TetrisFace : MonoBehaviour{
     // TODO: need to change the orientation to build structures face 
     public int gridHeight;
     public int gridWidth;
+    public float flyspeed;
+    public bool flyup;
+        
     private Transform[,] FaceGrid;
     private int _LowerLeftxOffset; //For Boundary Check
     private int _lowerRightxOffset;
     private int x_offset; //Center x
     private int z_offset; //Center z 
+    private int y_offset; //Center Y 
     private float y_rotation;
     private List<GameObject> tetris_blocks;
 
@@ -24,6 +28,7 @@ public class TetrisFace : MonoBehaviour{
         FaceGrid = new Transform[gridWidth, gridHeight];
         x_offset = (int) transform.position.x;
         z_offset = (int) transform.position.z;
+        y_offset = (int) transform.position.y;
         y_rotation = transform.rotation.eulerAngles.y; 
         tetris_blocks = new List<GameObject>();
         Generate_tetris();
@@ -50,9 +55,9 @@ public class TetrisFace : MonoBehaviour{
         if (y_rotation == 0){
             foreach (Transform cubeTransform in currentBlock.transform){
                 Vector3 pos = Round(cubeTransform.position);
-                if (pos.y < gridHeight){
+                if (pos.y - y_offset < gridHeight){
                     int xInGridSystem = (int)Mathf.Round(pos.x - _LowerLeftxOffset - x_offset);
-                    int yInGridSystem = (int) Mathf.Round(pos.y);
+                    int yInGridSystem = (int) Mathf.Round(pos.y - y_offset);
                     FaceGrid[xInGridSystem, yInGridSystem] = cubeTransform;
                 }
             }
@@ -60,10 +65,10 @@ public class TetrisFace : MonoBehaviour{
         else if (y_rotation == 90){
             foreach (Transform cubeTransform in currentBlock.transform){
                 Vector3 pos = Round(cubeTransform.position);
-                if (pos.y < gridHeight){
+                if (pos.y - y_offset < gridHeight){
                     //if rotation is 90 we need to check z
                     int xInGridSystem = (int)Mathf.Round(pos.z - _LowerLeftxOffset - z_offset);
-                    int yInGridSystem = (int) Mathf.Round(pos.y);
+                    int yInGridSystem = (int) Mathf.Round(pos.y - y_offset);
                     FaceGrid[xInGridSystem, yInGridSystem] = cubeTransform;
                 }
             }
@@ -72,7 +77,7 @@ public class TetrisFace : MonoBehaviour{
 
 
     public Transform GetGridTransform(Vector3 gridPos){
-        if (gridPos.y > gridHeight-1){
+        if (gridPos.y - y_offset > gridHeight-1){
             return null;
         }
 
@@ -83,7 +88,7 @@ public class TetrisFace : MonoBehaviour{
         else if (y_rotation == 90){
             xInGridSystem = (int)Mathf.Round(gridPos.z - _LowerLeftxOffset - z_offset); 
         }
-        return FaceGrid[xInGridSystem, (int)Mathf.Round(gridPos.y)];
+        return FaceGrid[xInGridSystem, (int)Mathf.Round(gridPos.y - y_offset)];
     }
     
     
@@ -102,7 +107,7 @@ public class TetrisFace : MonoBehaviour{
     public bool CheckReset(){
         bool result = false;
         int counter = 0;
-        for (int j = gridHeight-1; j > gridHeight - 5 ; j--){
+        for (int j = gridHeight-1; j > gridHeight-5 ; j--){
             for (int i = 0; i < gridWidth; i++){
                 if (FaceGrid[i,j] != null){
                     counter++;
@@ -168,23 +173,27 @@ public class TetrisFace : MonoBehaviour{
     
     public void Generate_tetris(){
         string next_tetris_type = GeneratePrefabNameString();
-        int random_offset = Random.Range(-2,2);
+        int halfgrid = gridWidth / 2;
+        
+        int random_offset = Random.Range(-3, 3);
         if (y_rotation == 0){
             GameObject new_tetris_block = (GameObject) Instantiate(Resources.Load(next_tetris_type, typeof(GameObject)),
-                new Vector3(random_offset + x_offset, gridHeight+10, z_offset), Quaternion.identity);
+                new Vector3(random_offset + x_offset, gridHeight+10+y_offset, z_offset), Quaternion.identity);
             //Set Which Face Controls which
             new_tetris_block.GetComponent<Tetris>().SetFaceReference(this);
             new_tetris_block.GetComponent<Tetris>().SetZoffset(z_offset);
             new_tetris_block.GetComponent<Tetris>().SetYrotation(y_rotation);
+            new_tetris_block.GetComponent<Tetris>().SetYoffset(y_offset);
             tetris_blocks.Add(new_tetris_block);
         }
         else if (y_rotation == 90){
             GameObject new_tetris_block = (GameObject) Instantiate(Resources.Load(next_tetris_type, typeof(GameObject)),
-                new Vector3(x_offset, gridHeight+10, z_offset+random_offset), Quaternion.Euler(0, 90, 0));
+                new Vector3(x_offset, gridHeight+10+y_offset, z_offset+random_offset), Quaternion.Euler(0, 90, 0));
             //Set Which Face Controls which
             new_tetris_block.GetComponent<Tetris>().SetFaceReference(this);
             new_tetris_block.GetComponent<Tetris>().SetZoffset(z_offset);
             new_tetris_block.GetComponent<Tetris>().SetYrotation(y_rotation);
+            new_tetris_block.GetComponent<Tetris>().SetYoffset(y_offset);
             tetris_blocks.Add(new_tetris_block);
         }
     }
@@ -193,10 +202,10 @@ public class TetrisFace : MonoBehaviour{
     public bool InGrid(Vector3 pos){
         //TODO: Based on lower left side position, adjust the checking method
         if (y_rotation == 0){
-            return pos.x >= _LowerLeftxOffset + x_offset + 0.5 && pos.x <= _lowerRightxOffset + x_offset- 0.5 && pos.y >= 0.5;
+            return pos.x >= _LowerLeftxOffset + x_offset + 0.5 && pos.x <= _lowerRightxOffset + x_offset- 0.5 && pos.y - y_offset >= 0.5;
         }
         if(y_rotation == 90){
-            return pos.z >= _LowerLeftxOffset + z_offset + 0.5 && pos.z <= _lowerRightxOffset + z_offset- 0.5 && pos.y >= 0.5;
+            return pos.z >= _LowerLeftxOffset + z_offset + 0.5 && pos.z <= _lowerRightxOffset + z_offset- 0.5 && pos.y - y_offset >= 0.5;
         }
         return false;
 //        return pos.x >= 0.5 && pos.x <= gridWidth-0.5 && pos.y >= 0.5;
