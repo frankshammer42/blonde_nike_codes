@@ -15,8 +15,9 @@ public class Tetris : MonoBehaviour {
     private int toDivide;
     private TetrisFace Face;  
     private int z_offset;
+    private float y_rotation;
+    private int gridHeightLimit;
 
-    
     public void SetFaceReference(TetrisFace FaceRef){
         Face = FaceRef;
     }
@@ -24,11 +25,19 @@ public class Tetris : MonoBehaviour {
     public void SetZoffset(int zOffset){
         z_offset = zOffset;
     } 
-     
+    
+    public void SetYrotation(float y_rot){
+        y_rotation = y_rot;
+    }
 
+    public void SetGridHeightLimit(int gridHeight){
+        gridHeightLimit = gridHeight;
+    }
+     
     //TODO: Maybe need to use glow material in here
     private void Start (){
         toDivide = (int)(1 / fall_speed);
+        Debug.Log(toDivide);
     }
 	
 	// Update is called once per frame
@@ -45,7 +54,7 @@ public class Tetris : MonoBehaviour {
         }
         else{
             transform.position += new Vector3(0, +fall_speed, 0);
-            transform.position = new Vector3(transform.position.x, (float)Math.Round(transform.position.y, 1), z_offset);
+            transform.position = new Vector3(transform.position.x, (float)Math.Round(transform.position.y, 1), transform.position.z);
             Face.DeleteRowsIfFull();
             enabled = false;
             Face.Generate_tetris();;
@@ -67,23 +76,37 @@ public class Tetris : MonoBehaviour {
    
     private void CheckUserInput(){
         if (Input.GetKeyDown(KeyCode.RightArrow)){
-            transform.position += new Vector3(1, 0, 0);
+            Vector3 change_to_apply = new Vector3(0, 0, 0);
+            if (y_rotation == 0){
+                change_to_apply = new Vector3(1, 0, 0);
+            }
+            else if(y_rotation == 90){
+                change_to_apply += new Vector3(0, 0, 1);
+            }
+            transform.position += change_to_apply;
             if (IsValidPosition()){
 //                FindObjectOfType<TetrisFace>().UpdateGrid(this);
                 Face.UpdateGrid(this);
             }
             else{
-                transform.position += new Vector3(-1, 0, 0);
+                transform.position += change_to_apply*-1;
             }
         }
         else if(Input.GetKeyDown(KeyCode.LeftArrow)){
-            transform.position += new Vector3(-1, 0, 0);
+            Vector3 change_to_apply = new Vector3(0, 0, 0);
+            if (y_rotation == 0){
+                change_to_apply = new Vector3(-1, 0, 0);
+            }
+            else if(y_rotation == 90){
+                change_to_apply += new Vector3(0, 0, -1);
+            }
+            transform.position += change_to_apply;
             if (IsValidPosition()){
 //                FindObjectOfType<TetrisFace>().UpdateGrid(this);
                 Face.UpdateGrid(this);
             }
             else{
-                transform.position += new Vector3(1, 0, 0);
+                transform.position += change_to_apply*-1;
             }
         }
         else if (Input.GetKeyDown(KeyCode.Space))
@@ -131,7 +154,7 @@ public class Tetris : MonoBehaviour {
             if (!Face.InGrid(rounded_pos)){
                 return false;
             }
-            Transform currentInGrid = Face.GetGridTransform(new Vector2(rounded_pos.x, rounded_pos.y));
+            Transform currentInGrid = Face.GetGridTransform(new Vector3(rounded_pos.x, rounded_pos.y, rounded_pos.z));
             if (currentInGrid != null && currentInGrid.parent != transform){
                 return false;
             }
