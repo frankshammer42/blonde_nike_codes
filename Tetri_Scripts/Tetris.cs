@@ -11,8 +11,8 @@ public class Tetris : MonoBehaviour {
     public float fall_speed; //Default fall speed
     public bool allowRotation = true;
     public bool limitRotation = false;
-    public bool flyup = false;
-    public float flyspeed = 1;
+    private bool flyup = false;
+    private float flyspeed = 1;
     private int wholeNumberCounter = 0; //I'm like goddannnnnng
     private int toDivide;
     private TetrisFace Face;  
@@ -36,6 +36,12 @@ public class Tetris : MonoBehaviour {
 
     public void SetYoffset(int yoff){
         y_offset = yoff;
+    }
+
+    public void SetFly(float flys){
+        enabled = true;
+        flyup = true;
+        flyspeed = flys;
     }
     
 

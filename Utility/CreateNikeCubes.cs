@@ -28,6 +28,7 @@ public class CreateNikeCubes : MonoBehaviour
                 if(mycollider.OverlapPoint(new Vector2(x,y))){
                     Vector3 spawn = new Vector3(x,y,0);
                     GameObject spawnedObject = Instantiate(boxPrefab,spawn,Quaternion.identity, transform);
+                    spawnedObject.tag = "NikeCube";
                     counter++;
                 }else{
                     continue;

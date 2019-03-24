@@ -10,9 +10,6 @@ public class TetrisFace : MonoBehaviour{
     // TODO: need to change the orientation to build structures face 
     public int gridHeight;
     public int gridWidth;
-    public float flyspeed;
-    public bool flyup;
-        
     private Transform[,] FaceGrid;
     private int _LowerLeftxOffset; //For Boundary Check
     private int _lowerRightxOffset;
@@ -21,6 +18,8 @@ public class TetrisFace : MonoBehaviour{
     private int y_offset; //Center Y 
     private float y_rotation;
     private List<GameObject> tetris_blocks;
+    private int lifespan = 3000;
+    private bool fly = false;
 
     private void Start(){
         _LowerLeftxOffset = -gridWidth / 2;
@@ -35,9 +34,19 @@ public class TetrisFace : MonoBehaviour{
     }
 
     private void Update(){
-        if (CheckReset()){
-            ResetFace();
-            Generate_tetris();
+        if (!fly){
+            if (CheckReset()){
+                ResetFace();
+                Generate_tetris();
+            }
+        }
+        else{
+            if (lifespan <= 0){
+                ResetFace();
+            }
+            else{
+                lifespan--;
+            }
         }
     }
 
@@ -124,7 +133,9 @@ public class TetrisFace : MonoBehaviour{
 
     public void ResetFace(){
         for (int i = 0; i < tetris_blocks.Count; i++){
-            Destroy(tetris_blocks[i]);
+            if (tetris_blocks != null){
+                Destroy(tetris_blocks[i]);
+            }
         }
         for (int i = 1; i < gridWidth-1; i++){
             for (int j = 1; j < gridHeight - 1; j++){
@@ -223,4 +234,16 @@ public class TetrisFace : MonoBehaviour{
         string result = "Prefabs/tetri_mino/Tetris_" + letters[random_num];
         return result;
     }
+
+    public void BroadcastTetrisFly(){
+        fly = true;
+        foreach (var tetris in tetris_blocks){
+            if (tetris != null){
+                float flyspeed = Random.Range(0.1f, 0.5f);
+                tetris.GetComponent<Tetris>().SetFly(flyspeed);
+            }
+        }
+    }
+    
+    
 }

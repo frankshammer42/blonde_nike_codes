@@ -59,9 +59,10 @@ public class BuildingManager : MonoBehaviour
         return Random.Range(0, max_y_offset);
     }
 
-
-
-
-
+    public void BroadCastFly(){
+        foreach (var tetris_face in tetris_faces){
+            tetris_face.GetComponent<TetrisFace>().BroadcastTetrisFly();
+        }
+    } 
 
 }
